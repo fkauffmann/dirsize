@@ -100,7 +100,7 @@ fn main() -> io::Result<()> {
     println!("\nTotal size: {} MB", total_str);
     // Print execution duration
     let duration = start_time.elapsed();
-    println!("\nExecution time : {} ms", duration.as_millis());
+    println!("\nExecution time: {} ms", duration.as_millis());
     Ok(())
 }
 
