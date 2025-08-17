@@ -3,6 +3,10 @@ use std::fs;
 use std::io;
 use std::path::Path;
 use std::fmt::Write; // Import Write trait for formatting
+use std::time::Instant;
+use std::io::{stdout, Write as IoWrite};
+use std::thread;
+use std::time::Duration;
 
 /// Recursively compute the total size of a directory (including all subdirectories and files)
 fn dir_size(path: &Path) -> u64 {
@@ -23,6 +27,8 @@ fn dir_size(path: &Path) -> u64 {
 }
 
 fn main() -> io::Result<()> {
+    // Start timer
+    let start_time = Instant::now();
     // Parse command line arguments for directory path
     let args: Vec<String> = env::args().collect();
     let dir_path = if args.len() > 1 {
@@ -44,8 +50,17 @@ fn main() -> io::Result<()> {
         if entry.file_type()?.is_dir() {
             let size = dir_size(&path);
             dirs_and_sizes.push((path, size));
+            // Animation: print a rotating bar
+            static FRAMES: [&str; 4] = ["|", "/", "-", "\\"];
+            let frame = FRAMES[dirs_and_sizes.len() % FRAMES.len()];
+            print!("\rComputing sizes... {}", frame);
+            stdout().flush().unwrap();
+            thread::sleep(Duration::from_millis(60));
         }
     }
+    // Efface l'animation
+    print!("\r                      \r");
+    stdout().flush().unwrap();
     // Sort directories by size, descending
     dirs_and_sizes.sort_by(|a, b| b.1.cmp(&a.1));
     // Compute total size
@@ -83,6 +98,9 @@ fn main() -> io::Result<()> {
     write!(&mut total_str, "{:.2}", total_mb).unwrap();
     let total_str = add_thousands_sep(&total_str);
     println!("\nTotal size: {} MB", total_str);
+    // Print execution duration
+    let duration = start_time.elapsed();
+    println!("\nExecution time : {} ms", duration.as_millis());
     Ok(())
 }
 
